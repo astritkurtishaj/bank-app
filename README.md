@@ -1,7 +1,15 @@
 ## Starting
 
-Clone repository to you local machine.
+Clone repository to you local machine. cd to the app directory.
 Copy .env.example and create another file in same level with name .env and fill the variables there.
+
+## Installing packages
+
+To install all the necessary libraries run the command below:
+
+```shell
+npm install
+```
 
 ## Migration
 

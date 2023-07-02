@@ -1,5 +1,8 @@
 import { ConfigService } from '@nestjs/config';
 import { DataSource, DataSourceOptions } from 'typeorm';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
 
 export function getDataSource(configService: ConfigService) {
   const dataSourceOptions: DataSourceOptions = {
