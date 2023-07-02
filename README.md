@@ -27,5 +27,4 @@ If everything has gone successfuly so far now you can start the app calling this
 npm run start:dev
 ```
 
-You can see the API documentation after the app is running on: your_local_url/api/v1/docs
-example: http://localhost:3005/api/v1/docs
+You can see the API documentation after the app is running on: http://localhost:3005/api/v1/docs
