@@ -18,12 +18,4 @@ export class DepositTransactionDto {
   @IsNotEmpty()
   @IsString()
   receiverAccount: string;
-
-  @ApiProperty({
-    description: 'Sender Account Number',
-    example: '566868',
-  })
-  @IsNotEmpty()
-  @IsString()
-  senderAccount: string;
 }

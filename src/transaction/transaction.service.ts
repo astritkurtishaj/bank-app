@@ -27,47 +27,26 @@ export class TransactionService {
         relations: ['user'],
       });
 
-      const senderAccount = await this.accountRepository.findOne({
-        where: { accountNumber: depositTransactionDto.senderAccount },
-        relations: ['user'],
-      });
-
-      if (!receiverAccount)
-        throw new NotFoundException('Receiver account not found');
-
-      if (!senderAccount)
-        throw new NotFoundException('Senders account not found!');
-
-      if (senderAccount.user.id != userId)
-        throw new UnauthorizedException(
-          `You are not authorised to deposit from the account with number: ${depositTransactionDto.senderAccount}`,
-        );
-
       if (!receiverAccount) {
         throw new NotFoundException(
           `Receiver account with number: ${depositTransactionDto.receiverAccount} not found`,
         );
       }
 
-      await this.transactionRepository.save({
-        type: 'deposit',
-        account: senderAccount,
-        amount: depositTransactionDto.amount,
-      });
-
-      if (depositTransactionDto.amount > 100) {
-        receiverAccount.bonus += depositTransactionDto.amount * 0.05;
+      if (receiverAccount.user.id == userId) {
+        await this.depositToAccount(
+          receiverAccount,
+          depositTransactionDto.amount,
+        );
+      } else {
+        const senderAccount = await this.findSenderAccount(userId);
+        await this.transferAmount(
+          senderAccount,
+          receiverAccount,
+          depositTransactionDto.amount,
+        );
       }
-      receiverAccount.balance += depositTransactionDto.amount;
 
-      await this.accountRepository.save(receiverAccount);
-
-      if (receiverAccount.id != senderAccount.id) {
-        if (senderAccount.balance < depositTransactionDto.amount)
-          throw new ForbiddenException('You do not have sufficient balance');
-        senderAccount.balance -= depositTransactionDto.amount;
-        await this.accountRepository.save(senderAccount);
-      }
       return {
         status: 200,
         message: `${depositTransactionDto.amount}€ are deposited in your account with number ${receiverAccount.accountNumber}`,
@@ -93,30 +72,90 @@ export class TransactionService {
         throw new NotFoundException(`Account with number: ${userId} not found`);
       }
 
-      if (account.user.id != userId)
+      if (account.user.id !== userId) {
         throw new UnauthorizedException(
           'You are not authorized to withdraw from this account',
         );
-
-      if (withdrawalAmount > account.balance) {
-        throw new ForbiddenException('No sufficient balance');
       }
 
-      await this.transactionRepository.save({
-        type: 'withdrawal',
-        account: account,
-        amount: withdrawTransactionDto.amount,
-      });
+      if (withdrawalAmount > account.balance) {
+        throw new ForbiddenException('Insufficient balance');
+      }
 
-      account.balance -= withdrawalAmount;
+      await this.performWithdrawal(account, withdrawalAmount);
 
-      await this.accountRepository.save(account);
       return {
         status: 200,
-        message: `${withdrawalAmount}€ withdrawed from your account: ${account.accountNumber}`,
+        message: `${withdrawalAmount}€ withdrawn from your account: ${account.accountNumber}`,
       };
     } catch (error) {
       throw error;
     }
+  }
+
+  private async performWithdrawal(account: Account, withdrawalAmount: number) {
+    await this.createTransaction(account, withdrawalAmount);
+
+    account.balance -= withdrawalAmount;
+
+    await this.accountRepository.save(account);
+  }
+
+  async createTransaction(account: Account, amount: number, isDeposit = false) {
+    await this.transactionRepository.save({
+      type: isDeposit ? 'deposit' : 'withdrawal',
+      account: account,
+      amount: amount,
+    });
+  }
+
+  private calculateBonus(amount: number) {
+    if (amount > 100) {
+      return amount * 0.05;
+    }
+    return 0;
+  }
+
+  private async depositToAccount(account: Account, amount: number) {
+    await this.createTransaction(account, amount, true);
+
+    const bonus = this.calculateBonus(amount);
+    account.bonus += bonus;
+    account.balance += amount;
+
+    await this.accountRepository.save(account);
+  }
+
+  private async findSenderAccount(userId: number) {
+    const senderAccount = await this.accountRepository
+      .createQueryBuilder('account')
+      .innerJoin('account.user', 'user')
+      .where('user.id = :userId', { userId })
+      .getOne();
+
+    if (!senderAccount)
+      throw new NotFoundException("Sender's account not found!");
+
+    return senderAccount;
+  }
+
+  private async transferAmount(
+    senderAccount: Account,
+    receiverAccount: Account,
+    amount: number,
+  ) {
+    if (senderAccount.balance < amount)
+      throw new ForbiddenException('You do not have sufficient balance');
+
+    await this.createTransaction(senderAccount, amount, true);
+
+    receiverAccount.balance += amount;
+    senderAccount.balance -= amount;
+
+    const bonus = this.calculateBonus(amount);
+    senderAccount.bonus += bonus;
+
+    await this.accountRepository.save(receiverAccount);
+    await this.accountRepository.save(senderAccount);
   }
 }
