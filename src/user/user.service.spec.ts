@@ -45,8 +45,8 @@ describe('UserService', () => {
       const createUserDto: CreateUserDto = {
         email: 'test@example.com',
         password: 'password123',
-        first_name: '',
-        last_name: '',
+        firstName: '',
+        lastName: '',
       };
 
       const expectedResult = {
@@ -65,8 +65,8 @@ describe('UserService', () => {
       const createUserDto: CreateUserDto = {
         email: 'test@example.com',
         password: 'password123',
-        first_name: 'test',
-        last_name: 'test',
+        firstName: 'test',
+        lastName: 'test',
       };
 
       const expectedResult = new BadRequestException(
