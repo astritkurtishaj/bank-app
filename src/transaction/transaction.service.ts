@@ -32,10 +32,8 @@ export class TransactionService {
         relations: ['user'],
       });
 
-      if (receiverAccount.id == senderAccount.id)
-        throw new ForbiddenException(
-          'You can not deposit and withdraw from the same account at same time',
-        );
+      if (!receiverAccount)
+        throw new NotFoundException('Receiver account not found');
 
       if (!senderAccount)
         throw new NotFoundException('Senders account not found!');
@@ -45,16 +43,13 @@ export class TransactionService {
           `You are not authorised to deposit from the account with number: ${depositTransactionDto.senderAccount}`,
         );
 
-      if (senderAccount.balance < depositTransactionDto.amount)
-        throw new ForbiddenException('You do not have sufficient balance');
-
       if (!receiverAccount) {
         throw new NotFoundException(
           `Receiver account with number: ${depositTransactionDto.receiverAccount} not found`,
         );
       }
 
-      const transaction = await this.transactionRepository.save({
+      await this.transactionRepository.save({
         type: 'deposit',
         account: senderAccount,
         amount: depositTransactionDto.amount,
@@ -67,9 +62,16 @@ export class TransactionService {
 
       await this.accountRepository.save(receiverAccount);
 
-      senderAccount.balance -= depositTransactionDto.amount;
-      await this.accountRepository.save(senderAccount);
-      return transaction;
+      if (receiverAccount.id != senderAccount.id) {
+        if (senderAccount.balance < depositTransactionDto.amount)
+          throw new ForbiddenException('You do not have sufficient balance');
+        senderAccount.balance -= depositTransactionDto.amount;
+        await this.accountRepository.save(senderAccount);
+      }
+      return {
+        status: 200,
+        message: `${depositTransactionDto.amount}€ are deposited in your account with number ${receiverAccount.accountNumber}`,
+      };
     } catch (error) {
       throw error;
     }
@@ -99,7 +101,8 @@ export class TransactionService {
       if (withdrawalAmount > account.balance) {
         throw new ForbiddenException('No sufficient balance');
       }
-      const transaction = await this.transactionRepository.save({
+
+      await this.transactionRepository.save({
         type: 'withdrawal',
         account: account,
         amount: withdrawTransactionDto.amount,
@@ -108,7 +111,10 @@ export class TransactionService {
       account.balance -= withdrawalAmount;
 
       await this.accountRepository.save(account);
-      return transaction;
+      return {
+        status: 200,
+        message: `${withdrawalAmount}€ withdrawed from your account: ${account.accountNumber}`,
+      };
     } catch (error) {
       throw error;
     }

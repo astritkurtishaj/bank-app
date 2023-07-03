@@ -1,8 +1,6 @@
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body } from '@nestjs/common';
 import { AccountService } from './account.service';
-import { JwtGuard } from 'src/guards';
 import {
-  ApiBearerAuth,
   ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiUnauthorizedResponse,
@@ -14,12 +12,10 @@ export class AccountController {
   constructor(private readonly accountService: AccountService) {}
 
   @ApiCreatedResponse({ description: 'Account created' })
-  @ApiBearerAuth()
   @ApiUnauthorizedResponse({ description: 'Unauthorised' })
   @ApiNotFoundResponse({
     description: 'User not with email provided not found!',
   })
-  @UseGuards(JwtGuard)
   @Post('create')
   create(@Body() createAccountDto: CreateAccountDto) {
     return this.accountService.create(createAccountDto);

@@ -27,10 +27,14 @@ export class AccountService {
           accountNumber: accountNr,
           user: user,
         });
-        return createdAccount;
+        return {
+          status: 201,
+          message: 'Account successfully created',
+          accountNumber: createdAccount.accountNumber,
+        };
       }
       throw new NotFoundException(
-        `User with the email: ${createAccountDto.email} not found`,
+        `Account is not created. User with the email: ${createAccountDto.email} not found`,
       );
     } catch (error) {
       throw error;
