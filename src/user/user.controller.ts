@@ -11,12 +11,10 @@ import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { JwtGuard } from 'src/guards';
-import { User } from './entities/user.entity';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
   ApiCreatedResponse,
-  ApiHeaders,
   ApiNoContentResponse,
   ApiOkResponse,
   ApiUnauthorizedResponse,

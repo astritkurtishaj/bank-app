@@ -47,7 +47,7 @@ export class UserService {
 
   async login(userData: LoginUserDto) {
     try {
-      const user = await this.userRepository.findOneOrFail({
+      const user = await this.userRepository.findOne({
         where: {
           email: userData.email,
         },
@@ -67,7 +67,7 @@ export class UserService {
 
       return await this.signToken(user.id, user.email);
     } catch (error) {
-      return error;
+      throw error;
     }
   }
 

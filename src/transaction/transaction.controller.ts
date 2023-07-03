@@ -1,15 +1,16 @@
 import { Controller, Post, Body, Req, UseGuards } from '@nestjs/common';
 import { TransactionService } from './transaction.service';
-import { WithdrawalAndDepositTransactionDto } from './dto/withdraw-deposit-transaction.dto';
+import { WithdrawalTransactionDto } from './dto/withdraw-transaction.dto';
 import { Request } from 'express';
 import { JwtGuard } from 'src/guards';
 import {
   ApiBearerAuth,
   ApiForbiddenResponse,
-  ApiHeaders,
+  ApiNotFoundResponse,
   ApiOkResponse,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { DepositTransactionDto } from './dto/deposit-transaction.dto';
 
 @UseGuards(JwtGuard)
 @Controller('transaction')
@@ -18,10 +19,12 @@ export class TransactionController {
 
   @ApiOkResponse({ description: 'Deposit successful' })
   @ApiUnauthorizedResponse({ description: 'Unauthorised' })
+  @ApiNotFoundResponse({ description: 'Not found error' })
+  @ApiForbiddenResponse({ description: 'Forbidden error' })
   @ApiBearerAuth()
   @Post('deposit')
   async deposit(
-    @Body() depositTransactionDto: WithdrawalAndDepositTransactionDto,
+    @Body() depositTransactionDto: DepositTransactionDto,
     @Req() request: Request,
   ) {
     return await this.transactionService.deposit(
@@ -33,10 +36,12 @@ export class TransactionController {
   @ApiOkResponse({ description: 'Withdraw successful' })
   @ApiForbiddenResponse({ description: 'Unsuficient balance' })
   @ApiUnauthorizedResponse({ description: 'Unauthorised' })
+  @ApiNotFoundResponse({ description: 'Not found error' })
   @ApiBearerAuth()
   @Post('withdraw')
   async withdraw(
-    @Body() depositTransactionDto: WithdrawalAndDepositTransactionDto,
+    @Body()
+    depositTransactionDto: WithdrawalTransactionDto,
     @Req() request: Request,
   ) {
     return await this.transactionService.withdrawal(

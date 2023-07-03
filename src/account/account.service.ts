@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Account } from './entities/account.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/user/entities/user.entity';
+import { CreateAccountDto } from './dto/create-account.dto';
 
 @Injectable()
 export class AccountService {
@@ -10,20 +11,27 @@ export class AccountService {
     @InjectRepository(Account) private accountRepository: Repository<Account>,
     @InjectRepository(User) private userRepository: Repository<User>,
   ) {}
-  async create(userId: number) {
+  async create(createAccountDto: CreateAccountDto) {
     try {
       const user = await this.userRepository.findOne({
         where: {
-          id: userId,
+          email: createAccountDto.email,
         },
       });
 
-      const r = (Math.random() + 1).toString(36).substring(7);
-      const createdAccount = await this.accountRepository.save({
-        accountNumber: r,
-        user: user,
-      });
-      return createdAccount;
+      if (user) {
+        const accountNr = Math.floor(
+          100000 + Math.random() * 900000,
+        ).toString();
+        const createdAccount = await this.accountRepository.save({
+          accountNumber: accountNr,
+          user: user,
+        });
+        return createdAccount;
+      }
+      throw new NotFoundException(
+        `User with the email: ${createAccountDto.email} not found`,
+      );
     } catch (error) {
       throw error;
     }
