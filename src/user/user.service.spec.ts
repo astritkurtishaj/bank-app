@@ -45,8 +45,8 @@ describe('UserService', () => {
       const createUserDto: CreateUserDto = {
         email: 'test@example.com',
         password: 'password123',
-        firstName: '',
-        lastName: '',
+        firstName: 'test',
+        lastName: 'test',
       };
 
       const expectedResult = {
