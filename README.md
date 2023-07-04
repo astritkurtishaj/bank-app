@@ -36,4 +36,4 @@ I covered only `user.service.ts` with tests just for demonstration
 npm run test user.service
 ```
 
-You can see the API documentation after the app is running on: `http://localhost:3005/api/v1/docs`
+You can see the API documentation after the app is running on: `your_local_url/api/v1/docs`
