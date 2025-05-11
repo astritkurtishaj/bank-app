@@ -5,6 +5,13 @@ Copy .env.example and create another file in same level with name .env and fill 
 
 ## Installing packages
 
+Copy the `.env.example` file to `.env`.
+```shell
+cp .env.example .env
+```
+
+
+## Running without `Docker`
 To install all the necessary libraries run the command below:
 
 ```shell
@@ -34,6 +41,31 @@ I covered only `user.service.ts` with tests just for demonstration
 
 ```shell
 npm run test user.service
+```
+
+## Running using `Docker`
+
+Make sure that the `Docker Desktop` is running in your machine.
+
+```shell
+docker-compose up
+```
+
+If everything goes well than the `app` is ready to handle requests in this url: `http://localhost:3333/`
+
+Example `cURL`:
+
+```json
+curl --request POST \
+  --url http://localhost:3333/user/create \
+  --header 'Accept: application/json' \
+  --header 'Content-Type: application/json' \
+  --data '{
+	"firstName": "astrit",
+	"lastName": "kurtishaj",
+	"password": "astrit123",
+	"email": "astrit2@test.com"
+}'
 ```
 
 You can see the API documentation after the app is running on: `your_local_url/api/v1/docs`
